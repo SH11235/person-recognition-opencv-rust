@@ -1,23 +1,80 @@
-use anyhow::Result; // Automatically handle the error types
-use opencv::{
-    prelude::*,
-    videoio,
-    highgui
-}; // Note, the namespace of OpenCV is changed (to better or worse). It is no longer one enormous.
-fn main() -> Result<()> { // Note, this is anyhow::Result
-    // Open a GUI window
-    highgui::named_window("window", highgui::WINDOW_FULLSCREEN)?;
-    // Open the web-camera (assuming you have one)
-    let mut cam = videoio::VideoCapture::new(0, videoio::CAP_ANY)?;
-    let mut frame = Mat::default(); // This array will store the web-cam data
-    // Read the camera
-    // and display in the window
-    let haar_file = "haarcascade_frontalface_default.xml"
+use anyhow::Result;
+use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
+use std::{thread, time::Duration};
+
+fn main() -> Result<()> {
+    let window = "video capture";
+    highgui::named_window(window, 1)?;
+    let (xml, mut cam) = {
+        (
+            core::find_file("haarcascades/haarcascade_frontalface_alt.xml", true, false)?,
+            videoio::VideoCapture::new(0, videoio::CAP_ANY)?, // 0 is the default camera
+        )
+    };
+    let opened = videoio::VideoCapture::is_opened(&cam)?;
+    if !opened {
+        panic!("Unable to open default camera!");
+    }
+    let mut face = objdetect::CascadeClassifier::new(&xml)?;
     loop {
+        let mut frame = Mat::default();
         cam.read(&mut frame)?;
-        highgui::imshow("window", &frame)?;
-        let key = highgui::wait_key(1)?;
-        if key == 113 { // quit with q
+        if frame.size()?.width == 0 {
+            thread::sleep(Duration::from_secs(50));
+            continue;
+        }
+        let mut gray = Mat::default();
+        imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
+        let mut reduced = Mat::default();
+        imgproc::resize(
+            &gray,
+            &mut reduced,
+            core::Size {
+                width: 0,
+                height: 0,
+            },
+            0.25f64,
+            0.25f64,
+            imgproc::INTER_LINEAR,
+        )?;
+        let mut faces = types::VectorOfRect::new();
+        face.detect_multi_scale(
+            &reduced,
+            &mut faces,
+            1.1,
+            2,
+            objdetect::CASCADE_SCALE_IMAGE,
+            core::Size {
+                width: 30,
+                height: 30,
+            },
+            core::Size {
+                width: 0,
+                height: 0,
+            },
+        )?;
+        println!("faces: {}", faces.len());
+        for face in faces {
+            println!("face {:?}", face);
+            let scaled_face = core::Rect {
+                x: face.x * 4,
+                y: face.y * 4,
+                width: face.width * 4,
+                height: face.height * 4,
+            };
+            imgproc::rectangle(
+                &mut frame,
+                scaled_face,
+                core::Scalar::new(0f64, -1f64, -1f64, -1f64),
+                1,
+                8,
+                0,
+            )?;
+            // Write image using OpenCV
+            imgcodecs::imwrite("./tmp.png", &frame, &core::Vector::default())?;
+        }
+        highgui::imshow(window, &frame)?;
+        if highgui::wait_key(10)? > 0 {
             break;
         }
     }
