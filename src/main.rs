@@ -1,6 +1,6 @@
 use anyhow::Result;
 use dotenv::dotenv;
-use opencv::{core, highgui, imgproc, objdetect, prelude::*, types, videoio};
+use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
 use std::env;
 use std::{thread, time::Duration};
 
