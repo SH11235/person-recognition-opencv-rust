@@ -13,7 +13,8 @@ fn main() -> Result<()> {
         .expect("HAARCASCADES_FILE is not set in the environment variable.");
 
     let haarcascades_file_path = match &*haarcascades_file_type {
-        "frontalface" => "haarcascades/haarcascade_frontalface_alt.xml",
+        "frontalface" => "haarcascades/haarcascade_frontalface_default.xml",
+        "frontalface_alt" => "haarcascades/haarcascade_frontalface_alt.xml",
         "haarcascade_upperbody" => "haarcascades/haarcascade_upperbody.xml",
         "fullbody" => "haarcascades/haarcascade_fullbody.xml",
         _ => "haarcascades/haarcascade_frontalface_alt.xml",
