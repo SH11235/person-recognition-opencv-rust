@@ -1,13 +1,27 @@
 use anyhow::Result;
-use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
+use dotenv::dotenv;
+use opencv::{core, highgui, imgproc, objdetect, prelude::*, types, videoio};
+use std::env;
 use std::{thread, time::Duration};
 
 fn main() -> Result<()> {
     let window = "video capture";
     highgui::named_window(window, 1)?;
+
+    dotenv().ok();
+    let haarcascades_file_type = env::var("HAARCASCADES_FILE")
+        .expect("HAARCASCADES_FILE is not set in the environment variable.");
+
+    let haarcascades_file_path = match &*haarcascades_file_type {
+        "frontalface" => "haarcascades/haarcascade_frontalface_alt.xml",
+        "haarcascade_upperbody" => "haarcascades/haarcascade_upperbody.xml",
+        "fullbody" => "haarcascades/haarcascade_fullbody.xml",
+        _ => "haarcascades/haarcascade_frontalface_alt.xml",
+    };
+
     let (xml, mut cam) = {
         (
-            core::find_file("haarcascades/haarcascade_frontalface_alt.xml", true, false)?,
+            core::find_file(haarcascades_file_path, true, false)?,
             videoio::VideoCapture::new(0, videoio::CAP_ANY)?, // 0 is the default camera
         )
     };
