@@ -1,10 +1,12 @@
 use anyhow::Result;
 use dotenv::dotenv;
 use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
+use reqwest::header;
 use std::env;
 use std::{thread, time::Duration};
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window = "video capture";
     highgui::named_window(window, 1)?;
 
@@ -31,6 +33,9 @@ fn main() -> Result<()> {
         panic!("Unable to open default camera!");
     }
     let mut face = objdetect::CascadeClassifier::new(&xml)?;
+
+    let mut stop = false;
+
     loop {
         let mut frame = Mat::default();
         cam.read(&mut frame)?;
@@ -68,6 +73,7 @@ fn main() -> Result<()> {
                 height: 0,
             },
         )?;
+
         println!("faces: {}", faces.len());
         for face in faces {
             println!("face {:?}", face);
@@ -86,12 +92,38 @@ fn main() -> Result<()> {
                 0,
             )?;
             // Write image using OpenCV
-            imgcodecs::imwrite("./tmp.png", &frame, &core::Vector::default())?;
+            imgcodecs::imwrite("./person.png", &frame, &core::Vector::default())?;
+            stop = true;
+        }
+        if stop {
+            post_slack().await?;
+            break;
         }
         highgui::imshow(window, &frame)?;
         if highgui::wait_key(10)? > 0 {
             break;
         }
     }
+    Ok(())
+}
+
+async fn post_slack() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().unwrap();
+    let token = env::var("SLACK_BOT_TOKEN").unwrap();
+    let slack_channel = env::var("SLACK_CHANNEL").unwrap();
+    let slack_message= env::var("SLACK_MESSAGE").unwrap();
+    let mut headers = header::HeaderMap::new();
+    headers.insert(
+        "Content-Type",
+        "application/x-www-form-urlencoded".parse().unwrap(),
+    );
+
+    reqwest::Client::new()
+        .post("https://slack.com/api/chat.postMessage")
+        .headers(headers)
+        .body(format!("token={}&channel={}&text={}", token, slack_channel, slack_message))
+        .send().await?
+        .text().await?;
+
     Ok(())
 }
