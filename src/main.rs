@@ -111,7 +111,7 @@ async fn post_slack() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().unwrap();
     let token = env::var("SLACK_BOT_TOKEN").unwrap();
     let slack_channel = env::var("SLACK_CHANNEL").unwrap();
-    let slack_message= env::var("SLACK_MESSAGE").unwrap();
+    let slack_message = env::var("SLACK_MESSAGE").unwrap();
     let mut headers = header::HeaderMap::new();
     headers.insert(
         "Content-Type",
@@ -121,9 +121,14 @@ async fn post_slack() -> Result<(), Box<dyn std::error::Error>> {
     reqwest::Client::new()
         .post("https://slack.com/api/chat.postMessage")
         .headers(headers)
-        .body(format!("token={}&channel={}&text={}", token, slack_channel, slack_message))
-        .send().await?
-        .text().await?;
+        .body(format!(
+            "token={}&channel={}&text={}",
+            token, slack_channel, slack_message
+        ))
+        .send()
+        .await?
+        .text()
+        .await?;
 
     Ok(())
 }
