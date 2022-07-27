@@ -1,4 +1,5 @@
 use anyhow::Result;
+use chrono::Local;
 use dotenv::dotenv;
 use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
 use reqwest::header;
@@ -92,7 +93,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 0,
             )?;
             // Write image using OpenCV
-            imgcodecs::imwrite("./person.png", &frame, &core::Vector::default())?;
+            let now = Local::now();
+            let image_name = format!("./{}.jpg", now.format("%Y%m%d_%H%M%S"));
+            let img_ok = imgcodecs::imwrite(&image_name, &frame, &core::Vector::default());
+            match img_ok {
+                Ok(_) => println!("{} saved", image_name),
+                Err(e) => println!("{} failed: {}", image_name, e),
+            }
             stop = true;
         }
         if stop {
