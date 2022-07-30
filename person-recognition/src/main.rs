@@ -94,7 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?;
             // Write image using OpenCV
             let now = Local::now();
-            let image_name = format!("./{}.jpg", now.format("%Y%m%d_%H%M%S"));
+            let image_name = format!("./image/{}.jpg", now.format("%Y%m%d_%H%M%S"));
             let img_ok = imgcodecs::imwrite(&image_name, &frame, &core::Vector::default());
             match img_ok {
                 Ok(_) => println!("{} saved", image_name),
