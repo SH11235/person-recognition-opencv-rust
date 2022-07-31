@@ -4,8 +4,7 @@ use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, vi
 use std::env;
 use std::{thread, time::Duration};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let haarcascades_file_type = env::var("HAARCASCADES_FILE")
         .expect("HAARCASCADES_FILE is not set in the environment variable.");
@@ -89,8 +88,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for face in faces {
             // 複数回顔認識しないようにするため処理を止める
-            let sleep_time_seconds = 10;
-            println!("sleep {} seconds.", sleep_time_seconds);
+            let sleep_time_seconds = 30;
+            println!("Person detected! sleep {} seconds.", sleep_time_seconds);
             thread::sleep(Duration::from_secs(sleep_time_seconds));
             let scaled_face = core::Rect {
                 x: face.x * 4,
@@ -113,10 +112,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match img_ok {
                 Ok(_) => {
                     // インターバル
-                    let sleep_time_seconds = 50;
+                    let sleep_time_seconds = 30;
                     println!("{} saved", image_name);
                     println!("sleep {} seconds.", sleep_time_seconds);
                     thread::sleep(Duration::from_secs(sleep_time_seconds));
+                    println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
                     break;
                 },
                 Err(e) => println!("{} failed: {}", image_name, e),

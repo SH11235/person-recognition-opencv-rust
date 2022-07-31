@@ -9,4 +9,3 @@ edition = "2021"
 chrono = "0.4.19"
 dotenv = "0.15.0"
 opencv = "0.66.0"
-tokio = { version = "1", features = ["full"] }
