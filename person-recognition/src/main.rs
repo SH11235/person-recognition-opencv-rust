@@ -45,9 +45,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             thread::sleep(Duration::from_secs(50));
             continue;
         }
-        let mut gray = Mat::default();
-        imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
+
         let mut reduced = Mat::default();
+        let mut faces = types::VectorOfRect::new();
+        let mut gray = Mat::default();
+
+        if with_window == "true" {
+            // activate camera window
+            highgui::imshow(window, &frame)?;
+            if highgui::wait_key(10)? > 0 {
+                break;
+            }
+        }
+
+        imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
         imgproc::resize(
             &gray,
             &mut reduced,
@@ -59,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             0.25f64,
             imgproc::INTER_LINEAR,
         )?;
-        let mut faces = types::VectorOfRect::new();
+
         face.detect_multi_scale(
             &reduced,
             &mut faces,
@@ -77,6 +88,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
 
         for face in faces {
+            // 複数回顔認識しないようにするため処理を止める
+            let sleep_time_seconds = 10;
+            println!("sleep {} seconds.", sleep_time_seconds);
+            thread::sleep(Duration::from_secs(sleep_time_seconds));
             let scaled_face = core::Rect {
                 x: face.x * 4,
                 y: face.y * 4,
@@ -97,20 +112,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let img_ok = imgcodecs::imwrite(&image_name, &frame, &core::Vector::default());
             match img_ok {
                 Ok(_) => {
-                    let sleep_time_seconds = 60;
+                    // インターバル
+                    let sleep_time_seconds = 50;
                     println!("{} saved", image_name);
-                    println!("sleep {} seconds.", &sleep_time_seconds);
+                    println!("sleep {} seconds.", sleep_time_seconds);
                     thread::sleep(Duration::from_secs(sleep_time_seconds));
                     break;
                 },
                 Err(e) => println!("{} failed: {}", image_name, e),
             }
-        }
-        if with_window == "true" {
-            highgui::imshow(window, &frame)?;
-        }
-        if highgui::wait_key(10)? > 0 {
-            break;
         }
     }
     Ok(())
