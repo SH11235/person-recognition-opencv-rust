@@ -9,27 +9,30 @@ SLACK_CHANNEL = os.getenv('SLACK_CHANNEL')
 SLACK_CHANNEL_ID = "C03ELV7255Z"
 SLACK_MESSAGE = os.getenv('SLACK_MESSAGE')
 
+from pathlib import Path
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-image_path ="../person-recognition/image"
-files = os.listdir(path=image_path)
-files = [f for f in files if f.endswith(".jpg")].sort(key=os.path.getmtime)
-logging.info("files: ", files)
+image_dir ="../person-recognition/image"
+image_file_paths = list(Path(image_dir).glob(r'*.jpg'))
+# 最新順にソート
+image_file_paths.sort(key=os.path.getmtime, reverse=True)
+logging.info(image_file_paths)
 
-file_name = files[0]
+if len(image_file_paths) > 0:
+    file_path = image_file_paths[0].__str__()
+    from slack_sdk import WebClient
+    client = WebClient(token=SLACK_BOT_TOKEN)
+    result = client.files_upload(
+        channels=SLACK_CHANNEL_ID,
+        initial_comment=SLACK_MESSAGE,
+        # file="../person-recognition/image/ram1.jpg",
+        file=file_path,
+    )
+    # Log the result
+    logging.info(result)
 
-from slack_sdk import WebClient
-client = WebClient(token=SLACK_BOT_TOKEN)
-result = client.files_upload(
-    channels=SLACK_CHANNEL_ID,
-    initial_comment=SLACK_MESSAGE,
-    file=file_name,
-)
-# Log the result
-logging.info(result)
-
-# clean up
-import shutil
-for file in files:
-    shutil.move(image_path + "/" + file, image_path + "/old/")
+    # clean up
+    import shutil
+    for image_file_path in image_file_paths:
+        shutil.move(image_file_path.__str__(), image_dir + "/old/")
