@@ -8,9 +8,6 @@ use std::{thread, time::Duration};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let window = "video capture";
-    highgui::named_window(window, 1)?;
-
     dotenv().ok();
     let haarcascades_file_type = env::var("HAARCASCADES_FILE")
         .expect("HAARCASCADES_FILE is not set in the environment variable.");
@@ -22,6 +19,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "fullbody" => "haarcascades/haarcascade_fullbody.xml",
         _ => "haarcascades/haarcascade_frontalface_alt.xml",
     };
+
+    let window = "video capture";
+    let with_window = env::var("WITH_WINDOW").unwrap_or("true".to_string());
+    if with_window == "true" {
+        highgui::named_window(window, 1)?;
+    }
 
     let (xml, mut cam) = {
         (
