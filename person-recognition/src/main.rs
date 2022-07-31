@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let mut face = objdetect::CascadeClassifier::new(&xml)?;
 
-    let mut stop = false;
+    println!("start monitoring: {}", format!("./image/{}.jpg", Local::now().format("%Y%m%d_%H%M%S")));
 
     loop {
         let mut frame = Mat::default();
@@ -78,9 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         )?;
 
-        println!("faces: {}", faces.len());
         for face in faces {
-            println!("face {:?}", face);
             let scaled_face = core::Rect {
                 x: face.x * 4,
                 y: face.y * 4,
@@ -100,16 +98,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let image_name = format!("./image/{}.jpg", now.format("%Y%m%d_%H%M%S"));
             let img_ok = imgcodecs::imwrite(&image_name, &frame, &core::Vector::default());
             match img_ok {
-                Ok(_) => println!("{} saved", image_name),
+                Ok(_) => {
+                    let sleep_time_seconds = 60;
+                    println!("{} saved", image_name);
+                    println!("sleep {} seconds.", &sleep_time_seconds);
+                    post_slack().await?;
+                    thread::sleep(Duration::from_secs(sleep_time_seconds));
+                },
                 Err(e) => println!("{} failed: {}", image_name, e),
             }
-            stop = true;
         }
-        if stop {
-            post_slack().await?;
-            break;
+        if with_window == "true" {
+            highgui::imshow(window, &frame)?;
         }
-        highgui::imshow(window, &frame)?;
         if highgui::wait_key(10)? > 0 {
             break;
         }
