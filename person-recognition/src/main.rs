@@ -2,7 +2,6 @@ use anyhow::Result;
 use chrono::Local;
 use dotenv::dotenv;
 use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
-use reqwest::header;
 use std::env;
 use std::{thread, time::Duration};
 
@@ -78,7 +77,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         )?;
 
-        for face in faces {
+        if faces.len() > 0 {
+            face = faces[0];
             let scaled_face = core::Rect {
                 x: face.x * 4,
                 y: face.y * 4,
@@ -102,7 +102,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let sleep_time_seconds = 60;
                     println!("{} saved", image_name);
                     println!("sleep {} seconds.", &sleep_time_seconds);
-                    post_slack().await?;
                     thread::sleep(Duration::from_secs(sleep_time_seconds));
                 },
                 Err(e) => println!("{} failed: {}", image_name, e),
@@ -115,31 +114,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             break;
         }
     }
-    Ok(())
-}
-
-async fn post_slack() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().unwrap();
-    let token = env::var("SLACK_BOT_TOKEN").unwrap();
-    let slack_channel = env::var("SLACK_CHANNEL").unwrap();
-    let slack_message = env::var("SLACK_MESSAGE").unwrap();
-    let mut headers = header::HeaderMap::new();
-    headers.insert(
-        "Content-Type",
-        "application/x-www-form-urlencoded".parse().unwrap(),
-    );
-
-    reqwest::Client::new()
-        .post("https://slack.com/api/chat.postMessage")
-        .headers(headers)
-        .body(format!(
-            "token={}&channel={}&text={}",
-            token, slack_channel, slack_message
-        ))
-        .send()
-        .await?
-        .text()
-        .await?;
-
     Ok(())
 }
