@@ -87,10 +87,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
 
         for face in faces {
-            // 複数回顔認識しないようにするため処理を止める
-            let sleep_time_seconds = 30;
-            println!("Person detected! sleep {} seconds.", sleep_time_seconds);
-            thread::sleep(Duration::from_secs(sleep_time_seconds));
             let scaled_face = core::Rect {
                 x: face.x * 4,
                 y: face.y * 4,
