@@ -77,8 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         )?;
 
-        if faces.len() > 0 {
-            face = faces[0];
+        for face in faces {
             let scaled_face = core::Rect {
                 x: face.x * 4,
                 y: face.y * 4,
@@ -103,6 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{} saved", image_name);
                     println!("sleep {} seconds.", &sleep_time_seconds);
                     thread::sleep(Duration::from_secs(sleep_time_seconds));
+                    break;
                 },
                 Err(e) => println!("{} failed: {}", image_name, e),
             }
