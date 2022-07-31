@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let mut face = objdetect::CascadeClassifier::new(&xml)?;
 
-    println!("start monitoring: {}", format!("./image/{}.jpg", Local::now().format("%Y%m%d_%H%M%S")));
+    println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
 
     loop {
         let mut frame = Mat::default();
