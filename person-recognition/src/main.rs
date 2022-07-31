@@ -1,4 +1,3 @@
-use anyhow::Result;
 use chrono::Local;
 use dotenv::dotenv;
 use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
