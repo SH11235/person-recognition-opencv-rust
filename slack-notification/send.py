@@ -26,11 +26,8 @@ if len(image_file_paths) > 0:
     result = client.files_upload(
         channels=SLACK_CHANNEL_ID,
         initial_comment=SLACK_MESSAGE,
-        # file="../person-recognition/image/ram1.jpg",
         file=file_path,
     )
-    # Log the result
-    logging.info(result)
 
     # clean up
     import shutil
