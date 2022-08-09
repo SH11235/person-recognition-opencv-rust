@@ -67,21 +67,14 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 cp .env.sample .env
 ```
 
-- SLACK_BOT_TOKEN
-
-  Get your token from https://api.slack.com/apps/
-
-- SLACK_CHANNEL
-
-  '#your_channel_name'
-
-- SLACK_MESSAGE
-
-  Any message.
-
 - HAARCASCADES_FILE
 
   `frontalface` or `upperbody` or `frontalface_alt` or `fullbody`
+
+- WITH_WINDOW
+
+  - `true`: application window pops up
+  - `false`: for CLI
 
 ## Running the app
 

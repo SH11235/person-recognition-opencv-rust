@@ -1,16 +1,10 @@
-use anyhow::Result;
 use chrono::Local;
 use dotenv::dotenv;
 use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, videoio};
-use reqwest::header;
 use std::env;
 use std::{thread, time::Duration};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let window = "video capture";
-    highgui::named_window(window, 1)?;
-
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let haarcascades_file_type = env::var("HAARCASCADES_FILE")
         .expect("HAARCASCADES_FILE is not set in the environment variable.");
@@ -22,6 +16,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "fullbody" => "haarcascades/haarcascade_fullbody.xml",
         _ => "haarcascades/haarcascade_frontalface_alt.xml",
     };
+
+    let window = "video capture";
+    let with_window = env::var("WITH_WINDOW").unwrap_or("true".to_string());
+    if with_window == "true" {
+        highgui::named_window(window, 1)?;
+    }
 
     let (xml, mut cam) = {
         (
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let mut face = objdetect::CascadeClassifier::new(&xml)?;
 
-    let mut stop = false;
+    println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
 
     loop {
         let mut frame = Mat::default();
@@ -44,9 +44,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             thread::sleep(Duration::from_secs(50));
             continue;
         }
-        let mut gray = Mat::default();
-        imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
+
         let mut reduced = Mat::default();
+        let mut faces = types::VectorOfRect::new();
+        let mut gray = Mat::default();
+
+        if with_window == "true" {
+            // activate camera window
+            highgui::imshow(window, &frame)?;
+            if highgui::wait_key(10)? > 0 {
+                break;
+            }
+        }
+
+        imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
         imgproc::resize(
             &gray,
             &mut reduced,
@@ -58,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             0.25f64,
             imgproc::INTER_LINEAR,
         )?;
-        let mut faces = types::VectorOfRect::new();
+
         face.detect_multi_scale(
             &reduced,
             &mut faces,
@@ -75,9 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         )?;
 
-        println!("faces: {}", faces.len());
         for face in faces {
-            println!("face {:?}", face);
             let scaled_face = core::Rect {
                 x: face.x * 4,
                 y: face.y * 4,
@@ -94,48 +103,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?;
             // Write image using OpenCV
             let now = Local::now();
-            let image_name = format!("./{}.jpg", now.format("%Y%m%d_%H%M%S"));
+            let image_name = format!("./image/{}.jpg", now.format("%Y%m%d_%H%M%S"));
             let img_ok = imgcodecs::imwrite(&image_name, &frame, &core::Vector::default());
             match img_ok {
-                Ok(_) => println!("{} saved", image_name),
+                Ok(_) => {
+                    // インターバル
+                    let sleep_time_seconds = 30;
+                    println!("{} saved", image_name);
+                    println!("sleep {} seconds.", sleep_time_seconds);
+                    thread::sleep(Duration::from_secs(sleep_time_seconds));
+                    println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
+                    break;
+                },
                 Err(e) => println!("{} failed: {}", image_name, e),
             }
-            stop = true;
-        }
-        if stop {
-            post_slack().await?;
-            break;
-        }
-        highgui::imshow(window, &frame)?;
-        if highgui::wait_key(10)? > 0 {
-            break;
         }
     }
-    Ok(())
-}
-
-async fn post_slack() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().unwrap();
-    let token = env::var("SLACK_BOT_TOKEN").unwrap();
-    let slack_channel = env::var("SLACK_CHANNEL").unwrap();
-    let slack_message = env::var("SLACK_MESSAGE").unwrap();
-    let mut headers = header::HeaderMap::new();
-    headers.insert(
-        "Content-Type",
-        "application/x-www-form-urlencoded".parse().unwrap(),
-    );
-
-    reqwest::Client::new()
-        .post("https://slack.com/api/chat.postMessage")
-        .headers(headers)
-        .body(format!(
-            "token={}&channel={}&text={}",
-            token, slack_channel, slack_message
-        ))
-        .send()
-        .await?
-        .text()
-        .await?;
-
     Ok(())
 }
