@@ -108,7 +108,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             match img_ok {
                 Ok(_) => {
                     // インターバル
-                    let sleep_time_seconds = 30;
+                    let sleep_time_seconds: u64 = env::var("SLEEP_TIME").unwrap_or("30".to_string()).parse().unwrap();
                     println!("{} saved", image_name);
                     println!("sleep {} seconds.", sleep_time_seconds);
                     thread::sleep(Duration::from_secs(sleep_time_seconds));

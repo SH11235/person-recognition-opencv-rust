@@ -71,6 +71,10 @@ cp .env.sample .env
 
   `frontalface` or `upperbody` or `frontalface_alt` or `fullbody`
 
+- SLEEP_TIME(seconds)
+
+  interval time
+
 - WITH_WINDOW
 
   - `true`: application window pops up

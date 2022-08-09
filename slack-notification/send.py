@@ -6,7 +6,7 @@ load_dotenv()
 import os
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
 SLACK_CHANNEL = os.getenv('SLACK_CHANNEL')
-SLACK_CHANNEL_ID = "C03ELV7255Z"
+SLACK_CHANNEL_ID = os.getenv('SLACK_CHANNEL_ID')
 SLACK_MESSAGE = os.getenv('SLACK_MESSAGE')
 
 from pathlib import Path
