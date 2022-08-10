@@ -6,6 +6,17 @@ use std::{thread, time::Duration};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
+    loop {
+        let _camera_loop = camera();
+        let sleep_time_seconds: u64 = env::var("SLEEP_TIME").unwrap_or("30".to_string()).parse().unwrap();
+        println!("sleep {} seconds.", sleep_time_seconds);
+        thread::sleep(Duration::from_secs(sleep_time_seconds));
+        println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
+    }
+}
+
+fn camera() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
     let haarcascades_file_type = env::var("HAARCASCADES_FILE")
         .expect("HAARCASCADES_FILE is not set in the environment variable.");
 
@@ -37,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
 
-    loop {
+    'main_loop: loop {
         let mut frame = Mat::default();
         cam.read(&mut frame)?;
         if frame.size()?.width == 0 {
@@ -52,9 +63,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if with_window == "true" {
             // activate camera window
             highgui::imshow(window, &frame)?;
-            if highgui::wait_key(10)? > 0 {
-                break;
-            }
         }
 
         imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
@@ -107,13 +115,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let img_ok = imgcodecs::imwrite(&image_name, &frame, &core::Vector::default());
             match img_ok {
                 Ok(_) => {
-                    // インターバル
-                    let sleep_time_seconds: u64 = env::var("SLEEP_TIME").unwrap_or("30".to_string()).parse().unwrap();
                     println!("{} saved", image_name);
-                    println!("sleep {} seconds.", sleep_time_seconds);
-                    thread::sleep(Duration::from_secs(sleep_time_seconds));
-                    println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
-                    break;
+                    break 'main_loop;
                 },
                 Err(e) => println!("{} failed: {}", image_name, e),
             }
