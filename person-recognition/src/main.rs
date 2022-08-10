@@ -4,18 +4,26 @@ use opencv::{core, highgui, imgcodecs, imgproc, objdetect, prelude::*, types, vi
 use std::env;
 use std::{thread, time::Duration};
 
+enum LoopState {
+    Continue,
+    Break,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     loop {
-        let _camera_loop = camera();
+        match camera_loop()? {
+            LoopState::Continue => (),
+            LoopState::Break => break,
+        }
         let sleep_time_seconds: u64 = env::var("SLEEP_TIME").unwrap_or("30".to_string()).parse().unwrap();
         println!("sleep {} seconds.", sleep_time_seconds);
         thread::sleep(Duration::from_secs(sleep_time_seconds));
-        println!("start monitoring: {}", Local::now().format("%Y%m%d_%H%M%S"));
     }
+    Ok(())
 }
 
-fn camera() -> Result<(), Box<dyn std::error::Error>> {
+fn camera_loop() -> Result<LoopState, Box<dyn std::error::Error>> {
     dotenv().ok();
     let haarcascades_file_type = env::var("HAARCASCADES_FILE")
         .expect("HAARCASCADES_FILE is not set in the environment variable.");
@@ -63,6 +71,9 @@ fn camera() -> Result<(), Box<dyn std::error::Error>> {
         if with_window == "true" {
             // activate camera window
             highgui::imshow(window, &frame)?;
+            if highgui::wait_key(10)? > 0 {
+                return Ok(LoopState::Break);
+            }
         }
 
         imgproc::cvt_color(&frame, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
@@ -122,5 +133,5 @@ fn camera() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    Ok(())
+    Ok(LoopState::Continue)
 }
