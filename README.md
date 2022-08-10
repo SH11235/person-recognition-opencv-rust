@@ -2,16 +2,16 @@
 
 ## person-recognition
 
-WebカメラとOpenCVを使って人物認識→画像出力するアプリ（Rust）
+Web カメラと OpenCV を使って人物認識 → 画像出力するアプリ（Rust）
 
 ## slack-notification
 
-`person-recognition`で保存した画像をSlackに送信するアプリ（Python）
+`person-recognition`で保存した画像を Slack に送信するアプリ（Python）
 
 ## リリース
 
-`scp`でRaspberry Piに必要なファイルを送信します。
-SSH接続設定は各々の環境に合わせてください。
+`scp`で Raspberry Pi に必要なファイルを送信します。
+SSH 接続設定は各々の環境に合わせてください。
 
 - person-recognition
 
@@ -27,7 +27,7 @@ SSH接続設定は各々の環境に合わせてください。
   # opencvのbuildに5～10分かかる
   cargo build --release
   # アプリをnohupで起動
-  nohup ./target/release/person-recognition &         
+  nohup ./target/release/person-recognition &
   ```
 
 - slack-notification
@@ -35,7 +35,8 @@ SSH接続設定は各々の環境に合わせてください。
   ```sh
   release-slack-notification.sh
   ```
-  crontabで定期実行しているのでファイル更新のみ。
+
+  crontab で定期実行しているのでファイル更新のみ。
 
 - 全部
 
@@ -44,7 +45,7 @@ SSH接続設定は各々の環境に合わせてください。
   ```
 
 - crontab
-  
+
   ```sh
   # crontabファイルを更新
   scp crontab rasp4:/home/pi/person-recognition-opencv-rust
