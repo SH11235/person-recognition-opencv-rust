@@ -37,8 +37,9 @@ fn camera_loop() -> Result<LoopState, Box<dyn std::error::Error>> {
     };
 
     let window = "video capture";
-    let with_window = env::var("WITH_WINDOW").unwrap_or("true".to_string());
-    if with_window == "true" {
+    let with_window = !env::var("WITH_WINDOW").is_err();
+
+    if with_window {
         highgui::named_window(window, 1)?;
     }
 
@@ -68,7 +69,7 @@ fn camera_loop() -> Result<LoopState, Box<dyn std::error::Error>> {
         let mut faces = types::VectorOfRect::new();
         let mut gray = Mat::default();
 
-        if with_window == "true" {
+        if with_window {
             // activate camera window
             highgui::imshow(window, &frame)?;
             if highgui::wait_key(10)? > 0 {

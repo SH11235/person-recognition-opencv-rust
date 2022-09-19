@@ -77,8 +77,7 @@ cp .env.sample .env
 
 - WITH_WINDOW
 
-  - `true`: application window pops up
-  - `false`: for CLI
+  Set if you want to launch the app window
 
 ## Running the app
 
