@@ -4,11 +4,12 @@
 
 Python3
 
+https://docs.astral.sh/uv/
+
 ## package install
 
 ```sh
-pip install slack-bolt
-pip install python-dotenv
+uv sync
 ```
 
 ## .env
