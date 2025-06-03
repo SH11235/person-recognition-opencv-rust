@@ -25,8 +25,8 @@ if len(image_file_paths) > 0:
     file_path = image_file_paths[0].__str__()
 
     client = WebClient(token=SLACK_BOT_TOKEN)
-    result = client.files_upload(
-        channels=SLACK_CHANNEL_ID,
+    result = client.files_upload_v2(
+        channel=SLACK_CHANNEL_ID,
         initial_comment=SLACK_MESSAGE,
         file=file_path,
     )

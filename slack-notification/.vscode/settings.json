@@ -1,0 +1,8 @@
+{
+    "python.defaultInterpreterPath": ".venv/bin/python",
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "strict",
+    "ruff.enable": true,
+    "ruff.runOnSave": "on",
+    "ruff.lsp.enabled": true
+}
